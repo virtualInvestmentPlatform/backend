@@ -14,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
     private UserRepository userRepository;
@@ -28,6 +30,11 @@ public class UserService {
     }
 
     public User registerUser(RegisterRequest registerRequest) {
+        Optional<User> userOptional = userRepository.findByEmail(registerRequest.getEmail());
+        if (userOptional.isPresent()) {
+            return null;
+        }
+
         User user = new User();
         user.setName(registerRequest.getName());
         user.setSurname(registerRequest.getSurname());

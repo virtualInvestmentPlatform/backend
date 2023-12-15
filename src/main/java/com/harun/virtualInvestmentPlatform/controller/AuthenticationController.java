@@ -2,6 +2,7 @@ package com.harun.virtualInvestmentPlatform.controller;
 
 import com.harun.virtualInvestmentPlatform.dto.LoginRequest;
 import com.harun.virtualInvestmentPlatform.dto.RegisterRequest;
+import com.harun.virtualInvestmentPlatform.model.User;
 import com.harun.virtualInvestmentPlatform.security.JwtUtil;
 import com.harun.virtualInvestmentPlatform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,8 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
-        userService.registerUser(registerRequest);
-        return ResponseEntity.ok("User registered successfully");
+        User user = userService.registerUser(registerRequest);
+        return user != null ? ResponseEntity.ok("User registered successfully") : ResponseEntity.badRequest().build();
     }
 
     @PostMapping("/login")
