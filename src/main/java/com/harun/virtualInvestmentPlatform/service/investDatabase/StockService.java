@@ -3,17 +3,23 @@ package com.harun.virtualInvestmentPlatform.service.investDatabase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.StockRepository;
+import com.harun.virtualInvestmentPlatform.dto.StockBasicDto;
 import com.harun.virtualInvestmentPlatform.dto.investDatabase.StockResponse;
+import com.harun.virtualInvestmentPlatform.global.GlobalVariables;
 import com.harun.virtualInvestmentPlatform.model.Stock;
 import kong.unirest.Unirest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.format.DateTimeFormatters;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import kong.unirest.HttpResponse;
 
@@ -29,8 +35,21 @@ public class StockService {
         this.stockRepository = stockRepository;
     }
 
-    public List<Stock> getAllStocks() {
-        return stockRepository.findAll();
+    public List<StockBasicDto> getAllStocks() {
+        List<StockBasicDto> stocks = new ArrayList<>();
+        stockRepository.findAll().forEach(stock -> {
+            stocks.add(
+                    new StockBasicDto(
+                            stock.getCode(),
+                            stock.getLastprice(),
+                            stock.getRate(),
+                            stock.getMin(),
+                            stock.getMax(),
+                            GlobalVariables.LAST_INVESTMENT_DATA_FETCH
+                    )
+            );
+        });
+        return stocks;
     }
 
     public Stock saveStock(Stock stock) {
@@ -44,7 +63,7 @@ public class StockService {
                 .asString();
 
         if (response.getStatus() == 200) {
-            // Using Jackson for JSON parsing
+
             ObjectMapper mapper = new ObjectMapper();
             StockResponse stockResponse = null;
             try {
@@ -53,6 +72,7 @@ public class StockService {
                 System.out.println(e.getMessage());
                 return new ArrayList<>();
             }
+
             return stockResponse.getResult();
         }
 
