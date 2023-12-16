@@ -1,4 +1,4 @@
-package com.harun.virtualInvestmentPlatform.dto;
+package com.harun.virtualInvestmentPlatform.dto.request;
 
 import java.util.Objects;
 

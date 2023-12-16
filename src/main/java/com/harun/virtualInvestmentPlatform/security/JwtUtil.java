@@ -37,4 +37,8 @@ public class JwtUtil {
             return false;
         }
     }
+
+    public String removeBearer(String jwt) {
+        return jwt.substring(8,jwt.length()-1);
+    }
 }

@@ -1,61 +1,39 @@
 package com.harun.virtualInvestmentPlatform.service;
 
+
 import com.harun.virtualInvestmentPlatform.dao.UserRepository;
-import com.harun.virtualInvestmentPlatform.dto.LoginRequest;
-import com.harun.virtualInvestmentPlatform.dto.RegisterRequest;
+import com.harun.virtualInvestmentPlatform.dto.UserDto;
+import com.harun.virtualInvestmentPlatform.dto.request.GetUserRequest;
 import com.harun.virtualInvestmentPlatform.model.User;
 import com.harun.virtualInvestmentPlatform.security.JwtUtil;
-import com.harun.virtualInvestmentPlatform.util.PasswordHashUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
 
 @Service
 public class UserService {
     private UserRepository userRepository;
     private JwtUtil jwtUtil;
-    private AuthenticationManager authenticationManager;
 
     @Autowired
-    public UserService(UserRepository userRepository , JwtUtil jwtUtil, AuthenticationManager authenticationManager){
+    public UserService(UserRepository userRepository , JwtUtil jwtUtil){
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
-        this.authenticationManager = authenticationManager;
     }
 
-    public User registerUser(RegisterRequest registerRequest) {
-        Optional<User> userOptional = userRepository.findByEmail(registerRequest.getEmail());
-        if (userOptional.isPresent()) {
+    public UserDto getUser(String jwtToken) {
+        String pureJwtToken = jwtUtil.removeBearer(jwtToken);
+        String email = jwtUtil.extractEmail(pureJwtToken);
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+
+        if (!optionalUser.isPresent()) {
             return null;
         }
 
-        User user = new User();
-        user.setName(registerRequest.getName());
-        user.setSurname(registerRequest.getSurname());
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(PasswordHashUtil.encodePassword(registerRequest.getPassword()));
-        return userRepository.save(user);
+        User user = optionalUser.get();
+        return new UserDto(user.getName(),user.getSurname(),user.getBalance());
     }
 
-    public String login(LoginRequest loginRequest) {
-        // Authenticate the user
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-        );
-
-        if (!authentication.isAuthenticated() || authentication.getPrincipal() == null)
-            return null;
-
-        // If authentication was successful, proceed to create JWT
-        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
-
-        return jwt;
-    }
 }
