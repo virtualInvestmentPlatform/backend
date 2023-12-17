@@ -38,7 +38,8 @@ public class WebSecurityConfig {
                                         "/currency",
                                         "/commodity",
                                         "/stock/{code}",
-                                        "/currency/{code}").permitAll()
+                                        "/currency/{code}",
+                                        "/commodity/{code}").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement ->

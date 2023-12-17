@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.CommodityRepository;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.CurrencyRepository;
 import com.harun.virtualInvestmentPlatform.dto.CommodityBasicDto;
+import com.harun.virtualInvestmentPlatform.dto.CommodityDetailedDto;
 import com.harun.virtualInvestmentPlatform.dto.CurrencyBasicDto;
+import com.harun.virtualInvestmentPlatform.dto.CurrencyDetailedDto;
 import com.harun.virtualInvestmentPlatform.dto.investDatabase.CommodityResponse;
 import com.harun.virtualInvestmentPlatform.dto.investDatabase.CurrencyResponse;
 import com.harun.virtualInvestmentPlatform.global.GlobalVariables;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CommodityService {
@@ -73,5 +76,21 @@ public class CommodityService {
             );
         });
         return commodities;
+    }
+
+    public CommodityDetailedDto getCommodity(String code) {
+        Optional<Commodity> optionalCommodity = commodityRepository.findById(code);
+        if(optionalCommodity.isPresent()){
+            Commodity commodity = optionalCommodity.get();
+            return new CommodityDetailedDto(
+                    commodity.getName(),
+                    commodity.getText(),
+                    commodity.getBuying(),
+                    commodity.getSelling(),
+                    commodity.getRate(),
+                    GlobalVariables.LAST_INVESTMENT_DATA_FETCH);
+        }
+
+        return null;
     }
 }
