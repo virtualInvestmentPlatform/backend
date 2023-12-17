@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.CurrencyRepository;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.StockRepository;
 import com.harun.virtualInvestmentPlatform.dto.CurrencyBasicDto;
+import com.harun.virtualInvestmentPlatform.dto.CurrencyDetailedDto;
 import com.harun.virtualInvestmentPlatform.dto.StockBasicDto;
+import com.harun.virtualInvestmentPlatform.dto.StockDetailedDto;
 import com.harun.virtualInvestmentPlatform.dto.investDatabase.CurrencyResponse;
 import com.harun.virtualInvestmentPlatform.dto.investDatabase.StockResponse;
 import com.harun.virtualInvestmentPlatform.global.GlobalVariables;
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CurrencyService {
@@ -75,5 +78,20 @@ public class CurrencyService {
             );
         });
         return currencies;
+    }
+
+    public CurrencyDetailedDto getCurrency(String code) {
+        Optional<Currency> optionalCurrency = currencyRepository.findById(code);
+        if(optionalCurrency.isPresent()){
+            Currency currency = optionalCurrency.get();
+            return new CurrencyDetailedDto(currency.getCode(),
+                    currency.getName(),
+                    currency.getBuying(),
+                    currency.getSelling(),
+                    currency.getRate(),
+                    GlobalVariables.LAST_INVESTMENT_DATA_FETCH);
+        }
+
+        return null;
     }
 }

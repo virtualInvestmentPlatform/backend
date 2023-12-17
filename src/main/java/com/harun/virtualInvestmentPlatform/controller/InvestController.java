@@ -1,5 +1,6 @@
 package com.harun.virtualInvestmentPlatform.controller;
 
+import com.harun.virtualInvestmentPlatform.dto.CurrencyDetailedDto;
 import com.harun.virtualInvestmentPlatform.dto.StockDetailedDto;
 import com.harun.virtualInvestmentPlatform.service.investDatabase.CommodityService;
 import com.harun.virtualInvestmentPlatform.service.investDatabase.CurrencyService;
@@ -43,6 +44,14 @@ public class InvestController {
         StockDetailedDto stockDetailedDto = stockService.getStock(code);
         if (stockDetailedDto != null)
             return  ResponseEntity.ok(stockDetailedDto);
+        return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/currency/{code}")
+    public ResponseEntity<?> getCurrency(@PathVariable String code) {
+        CurrencyDetailedDto currencyDetailedDto = currencyService.getCurrency(code);
+        if (currencyDetailedDto != null)
+            return  ResponseEntity.ok(currencyDetailedDto);
         return ResponseEntity.badRequest().build();
     }
 }
