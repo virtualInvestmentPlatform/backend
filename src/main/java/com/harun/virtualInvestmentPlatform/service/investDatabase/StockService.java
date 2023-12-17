@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.StockRepository;
 import com.harun.virtualInvestmentPlatform.dto.StockBasicDto;
+import com.harun.virtualInvestmentPlatform.dto.StockDetailedDto;
 import com.harun.virtualInvestmentPlatform.dto.investDatabase.StockResponse;
 import com.harun.virtualInvestmentPlatform.global.GlobalVariables;
 import com.harun.virtualInvestmentPlatform.model.Stock;
@@ -21,6 +22,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 import kong.unirest.HttpResponse;
 
 @Service
@@ -33,6 +36,22 @@ public class StockService {
     @Autowired
     public StockService(StockRepository stockRepository) {
         this.stockRepository = stockRepository;
+    }
+
+    public StockDetailedDto getStock(String code) {
+        Optional<Stock> optionalStock = stockRepository.findById(code);
+        if(optionalStock.isPresent()){
+            Stock stock = optionalStock.get();
+            return new StockDetailedDto(stock.getCode(),
+                    stock.getText(),
+                    stock.getHacim(),
+                    stock.getLastprice(),
+                    stock.getRate(),
+                    stock.getMin(),
+                    stock.getMax(),GlobalVariables.LAST_INVESTMENT_DATA_FETCH);
+        }
+
+        return null;
     }
 
     public List<StockBasicDto> getAllStocks() {

@@ -30,7 +30,7 @@ public class WebSecurityConfig {
                 .csrf(CsrfConfigurer::disable)
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/login", "/register", "/logout","/stock","/currency","/commodity").permitAll()
+                                .requestMatchers("/login", "/register", "/logout","/stock","/currency","/commodity","/stock/{code}").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement ->
