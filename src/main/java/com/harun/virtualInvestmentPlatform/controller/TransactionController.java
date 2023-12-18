@@ -2,6 +2,7 @@ package com.harun.virtualInvestmentPlatform.controller;
 
 import com.harun.virtualInvestmentPlatform.dto.request.InvestmentItemCountRequest;
 import com.harun.virtualInvestmentPlatform.dto.request.TransactionRequest;
+import com.harun.virtualInvestmentPlatform.enums.InvestmentType;
 import com.harun.virtualInvestmentPlatform.enums.TransactionType;
 import com.harun.virtualInvestmentPlatform.exception.MissingInvestmentException;
 import com.harun.virtualInvestmentPlatform.exception.NotEnoughBalanceException;
@@ -56,16 +57,21 @@ public class TransactionController {
     }
 
     @GetMapping("/investmentItemCount")
-    public ResponseEntity<?> getInvestmentItemCount(@RequestBody InvestmentItemCountRequest investmentItemCountRequest,
-                                                    @RequestHeader("Authorization") String jwtToken) {
+    public ResponseEntity<?> getInvestmentItemCount(
+            @RequestParam("investmentCode") String investmentCode,
+            @RequestParam("investmentType") InvestmentType investmentType,
+            @RequestHeader("Authorization") String jwtToken) {
 
         User user = userService.getUser(jwtToken);
-        if(user == null)
-            return new ResponseEntity<>("Kullanıcı bulunamadı!",HttpStatus.NOT_FOUND);
+        if (user == null)
+            return new ResponseEntity<>("Kullanıcı bulunamadı!", HttpStatus.NOT_FOUND);
+
+        // Create an InvestmentItemCountRequest object if needed
+        InvestmentItemCountRequest request = new InvestmentItemCountRequest(investmentType, investmentCode);
 
         return ResponseEntity.ok(transactionService.getUserInvestItemCount(
                 user,
-                investmentItemCountRequest.getInvestmentType(),
-                investmentItemCountRequest.getInvestmentCode()));
+                request.getInvestmentType(),
+                request.getInvestmentCode()));
     }
 }
