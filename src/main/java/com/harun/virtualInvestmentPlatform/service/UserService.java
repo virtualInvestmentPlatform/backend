@@ -23,7 +23,20 @@ public class UserService {
         this.jwtUtil = jwtUtil;
     }
 
-    public UserDto getUser(String jwtToken) {
+    public User getUser(String jwtToken) {
+        String pureJwtToken = jwtUtil.removeBearer(jwtToken);
+        String email = jwtUtil.extractEmail(pureJwtToken);
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+
+        if (!optionalUser.isPresent()) {
+            return null;
+        }
+
+        User user = optionalUser.get();
+        return user;
+    }
+
+    public UserDto getUserDto(String jwtToken) {
         String pureJwtToken = jwtUtil.removeBearer(jwtToken);
         String email = jwtUtil.extractEmail(pureJwtToken);
         Optional<User> optionalUser = userRepository.findByEmail(email);

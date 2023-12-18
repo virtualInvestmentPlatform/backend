@@ -21,7 +21,7 @@ public class UserController {
 
     @GetMapping("/user")
     public ResponseEntity<?> getUser(@RequestHeader("Authorization") String jwtToken) {
-        UserDto userDto = userService.getUser(jwtToken);
+        UserDto userDto = userService.getUserDto(jwtToken);
         return userDto != null ? ResponseEntity.ok(userDto) : ResponseEntity.badRequest().build();
     }
 }
