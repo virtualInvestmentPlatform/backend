@@ -17,9 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class TransactionService {
@@ -47,7 +45,7 @@ public class TransactionService {
         userRepository.save(user);
     }
 
-    private double getUserInvestItemCount(User user, InvestmentType investmentType, String investCode) {
+    public double getUserInvestItemCount(User user, InvestmentType investmentType, String investCode) {
         double itemCount = 0;
 
         ArrayList<Transaction> buyTransactions =

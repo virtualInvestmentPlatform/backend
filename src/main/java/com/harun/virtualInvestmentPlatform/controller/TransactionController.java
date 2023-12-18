@@ -1,5 +1,6 @@
 package com.harun.virtualInvestmentPlatform.controller;
 
+import com.harun.virtualInvestmentPlatform.dto.request.InvestmentItemCountRequest;
 import com.harun.virtualInvestmentPlatform.dto.request.TransactionRequest;
 import com.harun.virtualInvestmentPlatform.enums.TransactionType;
 import com.harun.virtualInvestmentPlatform.exception.MissingInvestmentException;
@@ -11,10 +12,7 @@ import com.harun.virtualInvestmentPlatform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController()
 public class TransactionController {
@@ -55,5 +53,19 @@ public class TransactionController {
         }
 
         return new ResponseEntity<>("Bir hata meydana geldi!",HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("/investmentItemCount")
+    public ResponseEntity<?> getInvestmentItemCount(@RequestBody InvestmentItemCountRequest investmentItemCountRequest,
+                                                    @RequestHeader("Authorization") String jwtToken) {
+
+        User user = userService.getUser(jwtToken);
+        if(user == null)
+            return new ResponseEntity<>("Kullanıcı bulunamadı!",HttpStatus.NOT_FOUND);
+
+        return ResponseEntity.ok(transactionService.getUserInvestItemCount(
+                user,
+                investmentItemCountRequest.getInvestmentType(),
+                investmentItemCountRequest.getInvestmentCode()));
     }
 }
