@@ -66,12 +66,21 @@ public class TransactionController {
         if (user == null)
             return new ResponseEntity<>("Kullanıcı bulunamadı!", HttpStatus.NOT_FOUND);
 
-        // Create an InvestmentItemCountRequest object if needed
-        InvestmentItemCountRequest request = new InvestmentItemCountRequest(investmentType, investmentCode);
-
         return ResponseEntity.ok(transactionService.getUserInvestItemCount(
                 user,
-                request.getInvestmentType(),
-                request.getInvestmentCode()));
+                investmentType,
+                investmentCode));
+    }
+
+    @GetMapping("/investment")
+    public ResponseEntity<?> getAllInvestments(@RequestHeader("Authorization") String jwtToken) {
+
+        User user = userService.getUser(jwtToken);
+        if (user == null)
+            return new ResponseEntity<>("Kullanıcı bulunamadı!", HttpStatus.NOT_FOUND);
+
+        System.out.println("geldi");
+
+        return ResponseEntity.ok(transactionService.getAllInvestments(user));
     }
 }

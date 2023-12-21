@@ -5,19 +5,26 @@ import com.harun.virtualInvestmentPlatform.dao.UserRepository;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.CommodityRepository;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.CurrencyRepository;
 import com.harun.virtualInvestmentPlatform.dao.investDatabase.StockRepository;
+import com.harun.virtualInvestmentPlatform.dto.AllInvestmentsDto;
+import com.harun.virtualInvestmentPlatform.dto.InvestmentDto;
 import com.harun.virtualInvestmentPlatform.dto.request.TransactionRequest;
 import com.harun.virtualInvestmentPlatform.enums.InvestmentType;
 import com.harun.virtualInvestmentPlatform.enums.TransactionType;
 import com.harun.virtualInvestmentPlatform.exception.MissingInvestmentException;
 import com.harun.virtualInvestmentPlatform.exception.NotEnoughBalanceException;
 import com.harun.virtualInvestmentPlatform.exception.NotEnoughInvestItemCountException;
+import com.harun.virtualInvestmentPlatform.global.GlobalVariables;
 import com.harun.virtualInvestmentPlatform.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class TransactionService {
@@ -191,6 +198,136 @@ public class TransactionService {
         setUserBalance(user , user.getBalance() + earning);
 
         return transactionRepository.save(transaction);
+    }
+
+    public AllInvestmentsDto getAllInvestments(User user) {
+        AllInvestmentsDto dto = new AllInvestmentsDto();
+
+        List<Transaction> stockTransactions = transactionRepository.findByUserIdAndInvestmentType(
+                user.getId(), InvestmentType.STOCK, Sort.by("timestamp").ascending());
+
+        List<Transaction> currencyTransactions = transactionRepository.findByUserIdAndInvestmentType(
+                user.getId(), InvestmentType.CURRENCY, Sort.by("timestamp").ascending());
+
+        List<Transaction> commodityTransactions = transactionRepository.findByUserIdAndInvestmentType(
+                user.getId(), InvestmentType.COMMODITY, Sort.by("timestamp").ascending());
+
+
+        stockTransactions.stream()
+                .filter(transaction -> transaction.getTransactionType() == TransactionType.BUY)
+                .forEach(transaction -> processBuyTransaction(dto.getStockInvestments(), transaction));
+
+        stockTransactions.stream()
+                .filter(transaction -> transaction.getTransactionType() == TransactionType.SELL)
+                .forEach(transaction -> processSellTransaction(dto.getStockInvestments(), transaction));
+
+        currencyTransactions.stream()
+                .filter(transaction -> transaction.getTransactionType() == TransactionType.BUY)
+                .forEach(transaction -> processBuyTransaction(dto.getCurrencyInvestments(), transaction));
+
+        currencyTransactions.stream()
+                .filter(transaction -> transaction.getTransactionType() == TransactionType.SELL)
+                .forEach(transaction -> processSellTransaction(dto.getCurrencyInvestments(), transaction));
+
+        commodityTransactions.stream()
+                .filter(transaction -> transaction.getTransactionType() == TransactionType.BUY)
+                .forEach(transaction -> processBuyTransaction(dto.getCommodityInvestments(), transaction));
+
+        commodityTransactions.stream()
+                .filter(transaction -> transaction.getTransactionType() == TransactionType.SELL)
+                .forEach(transaction -> processSellTransaction(dto.getCommodityInvestments(), transaction));
+
+        addLastPrice_Rate_TL_profitLoss(dto.getStockInvestments() , InvestmentType.STOCK);
+        addLastPrice_Rate_TL_profitLoss(dto.getCurrencyInvestments() , InvestmentType.CURRENCY);
+        addLastPrice_Rate_TL_profitLoss(dto.getCommodityInvestments() , InvestmentType.COMMODITY);
+
+        return dto;
+    }
+
+    private void processBuyTransaction(List<InvestmentDto> investments, Transaction transaction) {
+        InvestmentDto foundInvestment = investments.stream()
+                .filter(investmentDto -> investmentDto.getCode().equals(transaction.getInvestmentCode()))
+                .findFirst()
+                .orElse(null);
+
+        if (foundInvestment != null) {
+            foundInvestment.setAmount(foundInvestment.getAmount() + transaction.getAmount());
+            foundInvestment.setProfitLoss((long) (foundInvestment.getProfitLoss() - transaction.getAmount() * transaction.getInvestmentValue()));
+        } else {
+            investments.add(new InvestmentDto(
+                    transaction.getInvestmentCode(),
+                    0,
+                    0,
+                    transaction.getAmount(),
+                    0,
+                    (long) (-1 * transaction.getAmount() * transaction.getInvestmentValue()),
+                    GlobalVariables.LAST_INVESTMENT_DATA_FETCH));
+        }
+    }
+
+    private void processSellTransaction(List<InvestmentDto> investments, Transaction transaction) {
+        Iterator<InvestmentDto> iterator = investments.iterator();
+        while (iterator.hasNext()) {
+            InvestmentDto investmentDto = iterator.next();
+            if (investmentDto.getCode().equals(transaction.getInvestmentCode())) {
+                double newAmount = investmentDto.getAmount() - transaction.getAmount();
+                if (newAmount == 0) {
+                    iterator.remove();
+                } else {
+                    investmentDto.setAmount(newAmount);
+                    investmentDto.setProfitLoss((long) (investmentDto.getProfitLoss()
+                            + transaction.getAmount() * transaction.getInvestmentValue()));
+                }
+                break;
+            }
+        }
+    }
+
+    private void addLastPrice_Rate_TL_profitLoss(List<InvestmentDto> dtoList , InvestmentType type) {
+        switch (type) {
+            case STOCK:
+                for (InvestmentDto dto : dtoList) {
+                    Optional<Stock> optionalStock = stockRepository.findById(dto.getCode());
+                    if (!optionalStock.isPresent())
+                        break;
+
+                    Stock stock = optionalStock.get();
+
+                    dto.setLastprice(stock.getLastprice());
+                    dto.setRate(stock.getRate());
+                    dto.setTl((long) (dto.getAmount() * stock.getLastprice()));
+                    dto.setProfitLoss(dto.getProfitLoss() + dto.getTl());
+                }
+                break;
+            case CURRENCY:
+                for (InvestmentDto dto : dtoList) {
+                    Optional<Currency> optionalCurrency = currencyRepository.findById(dto.getCode());
+                    if (!optionalCurrency.isPresent())
+                        break;
+
+                    Currency currency = optionalCurrency.get();
+
+                    dto.setLastprice(currency.getBuying());
+                    dto.setRate(currency.getRate());
+                    dto.setTl((long) (dto.getAmount() * currency.getSelling()));
+                    dto.setProfitLoss(dto.getProfitLoss() + dto.getTl());
+                }
+                break;
+            case COMMODITY:
+                for (InvestmentDto dto : dtoList) {
+                    Optional<Commodity> optionalCommodity = commodityRepository.findById(dto.getCode());
+                    if (!optionalCommodity.isPresent())
+                        break;
+
+                    Commodity commodity = optionalCommodity.get();
+
+                    dto.setLastprice(commodity.getBuying());
+                    dto.setRate(commodity.getRate());
+                    dto.setTl((long) (dto.getAmount() * commodity.getSelling()));
+                    dto.setProfitLoss(dto.getProfitLoss() + dto.getTl());
+                }
+                break;
+        }
     }
 
 }
