@@ -28,8 +28,8 @@ The Virtual Investment Platform is an easy-to-use and straightforward investment
 
 ## Navigation
 
-Backend :<br/>
-Frontend :<br/>
+Backend : this <br/>
+Frontend : https://github.com/virtualInvestmentPlatform/frontend <br/>
 <br>
 
 ## Screenshots
@@ -42,17 +42,17 @@ Frontend :<br/>
     <img src = "images/home.png" height=400> &nbsp;
     
 * All Stocks - Currencies - Commodities Page <br><br>
-    <img src = "images/allStocks" height=400>
-    <img src = "images/allCurrencies" height=400>
-    <img src = "images/allCommodities" height=400>
+    <img src = "images/allStocks.png" height=400>
+    <img src = "images/allCurrencies.png" height=400>
+    <img src = "images/allCommodities.png" height=400>
 
 * A Stock - Currency - Commodity Page <br><br>
-    <img src = "images/stock" height=400>
-    <img src = "images/currency" height=400>
-    <img src = "images/commodity" height=400>
+    <img src = "images/stock.png" height=400>
+    <img src = "images/currency.png" height=400>
+    <img src = "images/commodity.png" height=400>
 
 * My Investment Page <br><br>
-    <img src = "images/my-investment" height=400> &nbsp;
+    <img src = "images/my-investment.png" height=400> &nbsp;
 
 ## System Requirements
 
