@@ -79,8 +79,6 @@ public class TransactionController {
         if (user == null)
             return new ResponseEntity<>("Kullanıcı bulunamadı!", HttpStatus.NOT_FOUND);
 
-        System.out.println("geldi");
-
         return ResponseEntity.ok(transactionService.getAllInvestments(user));
     }
 }
